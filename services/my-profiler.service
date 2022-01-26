@@ -1,0 +1,8 @@
+[Unit]
+Description=Profiling jetson nano power consumption
+
+[Service]
+ExecStart=/home/kahanam/experiments/profiling/scripts/power-service.sh -o output
+
+[Install]
+WantedBy=multi-user.target
