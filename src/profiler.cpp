@@ -60,6 +60,6 @@ void Profiler::writeInferenceTime(double startTimestamp, double duration)
 
 void Profiler::writeLayerTime(const char* layerName, float duration)
 {
-    fprintf(getFile(), "%s; %f\n", layerName, duration);
+    fprintf(getFile(), "%s; %f;\n", layerName, duration);
 }
 

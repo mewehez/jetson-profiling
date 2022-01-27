@@ -1,2 +1,6 @@
 build/
 .vscode/
+
+output.csv
+profiling_output.csv
+layer_out.csv

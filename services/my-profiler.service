@@ -2,7 +2,7 @@
 Description=Profiling jetson nano power consumption
 
 [Service]
-ExecStart=/home/kahanam/experiments/profiling/scripts/power-service.sh -o output
+ExecStart=/home/kahanam/experiments/profiling/scripts/power.sh -o /home/kahanam/experiments/profiling/output.csv
 
 [Install]
 WantedBy=multi-user.target
