@@ -14,5 +14,11 @@ echo ""
 
 ${PROGRAM} ${DATA_PATH}/black_bear.jpg --network=resnet-18 --log-level=silent --nb-runs=10000  --profile-out=${OUT_PATH}/layer_out.csv --profile
 
+# wait before closing service
+echo ""
+echo "Stopping service"
+sleep 5
+
 # stop service
 systemctl stop my-profiler.service
+echo "Service stopped"
