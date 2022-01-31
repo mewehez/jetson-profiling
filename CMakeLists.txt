@@ -31,7 +31,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_OUTPUT_DIR}/lib)
 # build c/c++ libs
 include_directories(${PROJECT_INCLUDE_DIR})
 
-file(GLOB profilingSources src/*.cpp)
+file(GLOB profilingSources src/*.cpp src/*.c)
 file(GLOB profilingIncludes src/*.h)
 
 # add directory for libnvbuf-utils to program
