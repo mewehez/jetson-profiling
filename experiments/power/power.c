@@ -67,11 +67,20 @@ void sigint_handler(int sig)
 
 void read_data(FILE* fp, int* value)
 {
-    fseek(fp, 0, SEEK_SET);
+    fseek(fp, 0, SEEK_SET);  // place cursor at begining
     fscanf(fp, "%d", value);
     // fgets(value, 6, fp);
     // value[6] = '\0';
     // fseek(fp, 0, SEEK_SET);
+}
+
+/**
+ * Halts the process for milliseconds.
+ * 
+ * @param tms time in milliseconds.
+ */
+int msleep(unsigned int tms) {
+  return usleep(tms * 1000);
 }
 
 int main(int argc, char** argv)
@@ -274,8 +283,6 @@ int main(int argc, char** argv)
         read_data(pow2_fp, &pow_val2);
         printf("Current: %4d mA -- Voltage: %4d mV -- Power: %4d mW\n",  curr_val2, volt_val2, pow_val2);
 
-        // pause before
-        sleep(1);  // the process is to fast for the file to write it
         // compute duration
         timestamp(&time_e);
         time_diff(&time_s, &time_e, &ellapsed);
@@ -286,6 +293,10 @@ int main(int argc, char** argv)
         // write values to file
         fprintf(output_fp, "%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%f\n", time_double(&time_s), curr_val0, volt_val0, pow_val0, 
         curr_val1, volt_val1, pow_val1, curr_val2, volt_val2, pow_val2, time_double(&ellapsed));
+
+        // the process is to fast for the file to write values.
+        // We need to pause for some milliseconds.
+        //msleep(1);  
 
         if(shutdown_flag) 
             break;
