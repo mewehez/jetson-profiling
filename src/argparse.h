@@ -52,10 +52,11 @@ typedef enum
  */
 typedef struct
 {
-  arg_type type;   /**< The data type of the argument */
-  char short_name; /**< The short name of the argument. Exemple `h` */
-  char* name;      /**< The long name of the argument. Exemple `help` */
-  void* value;     /**< Pointer to the value of the argument */
+  arg_type type;      /**< The data type of the argument */
+  char short_name;    /**< The short name of the argument. Exemple `h` */
+  char* name;         /**< The long name of the argument. Exemple `help` */
+  void* value;        /**< Pointer to the value of the argument */
+  void* default_val;  /**< Default value if not supplied by the user */
 } arg_option;
 
 /**
