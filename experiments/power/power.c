@@ -44,9 +44,9 @@ int status = 0; // variable for error handling
 static bool log_values = false; // Print values in console?
 
 // rails for file reading
-rail rail0 = { "", "", "", "", NULL, NULL, NULL};
-rail rail1 = { "", "", "", "", NULL, NULL, NULL};
-rail rail2 = { "", "", "", "", NULL, NULL, NULL};
+rail rail0 = { "", 0, 0, 0, NULL, NULL, NULL};
+rail rail1 = { "", 0, 0, 0, NULL, NULL, NULL};
+rail rail2 = { "", 0, 0, 0, NULL, NULL, NULL};
 
 // main function
 int main(int argc, char** argv)
@@ -125,20 +125,31 @@ int main(int argc, char** argv)
 
     // opean rail files for reading
     if(
-        open_file(RAIL0_CURRENT_PATH, "r", &rail0.curr_fp) != 0 ||
-        open_file(RAIL0_VOLTAGE_PATH, "r", &rail0.volt_fp) != 0 ||
-        open_file(RAIL0_POWER_PATH,   "r", &rail0.pow_fp)  != 0 ||
+        open_file(RAIL0_CURRENT_PATH, "r+", &rail0.curr_fp) != 0 ||
+        open_file(RAIL0_VOLTAGE_PATH, "r+", &rail0.volt_fp) != 0 ||
+        open_file(RAIL0_POWER_PATH,   "r+", &rail0.pow_fp)  != 0 ||
 
-        open_file(RAIL1_CURRENT_PATH, "r", &rail1.curr_fp) != 0 ||
-        open_file(RAIL1_VOLTAGE_PATH, "r", &rail1.volt_fp) != 0 ||
-        open_file(RAIL1_POWER_PATH,   "r", &rail1.pow_fp)  != 0 ||
+        open_file(RAIL1_CURRENT_PATH, "r+", &rail1.curr_fp) != 0 ||
+        open_file(RAIL1_VOLTAGE_PATH, "r+", &rail1.volt_fp) != 0 ||
+        open_file(RAIL1_POWER_PATH,   "r+", &rail1.pow_fp)  != 0 ||
 
-        open_file(RAIL2_CURRENT_PATH, "r", &rail2.curr_fp) != 0 ||
-        open_file(RAIL2_VOLTAGE_PATH, "r", &rail2.volt_fp) != 0 ||
-        open_file(RAIL2_POWER_PATH,   "r", &rail2.pow_fp)  != 0
+        open_file(RAIL2_CURRENT_PATH, "r+", &rail2.curr_fp) != 0 ||
+        open_file(RAIL2_VOLTAGE_PATH, "r+", &rail2.volt_fp) != 0 ||
+        open_file(RAIL2_POWER_PATH,   "r+", &rail2.pow_fp)  != 0
     )
     {
         puts(ERROR "Unable to open a rail file.");
+        goto cleaning_up;
+    }
+
+    // read rail 0
+    if(
+        read_rail_data(&rail0) != 0 ||
+        read_rail_data(&rail1) != 0 ||
+        read_rail_data(&rail2) != 0
+    )
+    {
+        puts(ERROR "Failed reading a rail data.");
         goto cleaning_up;
     }
 
@@ -172,11 +183,12 @@ int main(int argc, char** argv)
         log(COLOR_WHITE "[Ellapsed] " COLOR_NONE"%f\n\n", time_double(&ellapsed));
 
         // write values to file
-        fprintf(output_fp, "%f;%s;%s;%s;%s;%s;%s;%s;%s;%s;%f\n", time_double(&time_s), 
+        fprintf(output_fp, "%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%f\n", time_double(&time_s), 
         rail0.current, rail0.voltage, rail0.power, 
         rail1.current, rail1.voltage, rail1.power, 
         rail2.current, rail2.voltage, rail2.power, 
         time_double(&ellapsed));
+        msleep(4);
 
         if(shutdown_flag) 
             break;
