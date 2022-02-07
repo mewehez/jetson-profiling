@@ -10,25 +10,19 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <assert.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #define BUFF_SIZE 100
 // sysfs i2c INA base path
 #define I2C_BASE_PATH "/sys/bus/i2c/drivers/ina3221x/6-0040/iio:device0/"
 
-#define RAIL0_NAME_PATH     I2C_BASE_PATH "rail_name_0"
-#define RAIL0_CURRENT_PATH  I2C_BASE_PATH "in_current0_input"
-#define RAIL0_VOLTAGE_PATH  I2C_BASE_PATH "in_voltage0_input"
-#define RAIL0_POWER_PATH    I2C_BASE_PATH "in_power0_input"
-
-#define RAIL1_NAME_PATH     I2C_BASE_PATH "rail_name_1"
-#define RAIL1_CURRENT_PATH  I2C_BASE_PATH "in_current1_input"
-#define RAIL1_VOLTAGE_PATH  I2C_BASE_PATH "in_voltage1_input"
-#define RAIL1_POWER_PATH    I2C_BASE_PATH "in_power1_input"
-
-#define RAIL2_NAME_PATH     I2C_BASE_PATH "rail_name_2"
-#define RAIL2_CURRENT_PATH  I2C_BASE_PATH "in_current2_input"
-#define RAIL2_VOLTAGE_PATH  I2C_BASE_PATH "in_voltage2_input"
-#define RAIL2_POWER_PATH    I2C_BASE_PATH "in_power2_input"
+#define RAIL_NAME_PATH_F     I2C_BASE_PATH "rail_name_%d"
+#define RAIL_CURRENT_PATH_F  I2C_BASE_PATH "in_current%d_input"
+#define RAIL_VOLTAGE_PATH_F  I2C_BASE_PATH "in_voltage%d_input"
+#define RAIL_POWER_PATH_F    I2C_BASE_PATH "in_power%d_input"
 
 // colors used to style th console outputs
 
@@ -54,6 +48,7 @@ extern "C"
                             "--delay            Delay in milliseconds before next power reading.\n"\
                             "--log              Display values in the consol.\n"\
                             "--help             Show the help message.\n\n"
+#define rail_new() {-1, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 
 
 static bool log_values;
@@ -62,17 +57,89 @@ typedef struct timespec timespec;
 
 typedef struct 
 {
+    int fd;
+    struct stat file_info;
+} file_t;
+
+typedef struct 
+{
     // rail values
-    char name[15];
-    int current;
-    int voltage;
-    int power;
+    int id;
+    char* name;
+    char* c_value;
+    char* v_value;
+    char* p_value;
 
     // rail files pointers
-    FILE* curr_fp;
-    FILE* volt_fp;
-    FILE* pow_fp;
-} rail;
+    file_t* c_file;
+    file_t* v_file;
+    file_t* p_file;
+} rail_t;
+
+void rail_set_name(rail_t* rail, char* path)
+{
+    char tmp[15] = "";
+    FILE *fp = fopen(path, "r");
+    if(fp == NULL) {
+        printf(ERROR "Unable to open file %s\n", path);
+        sprintf(tmp, "rail%d", rail->id);
+        rail->name = (char*) calloc(7, sizeof(char));
+        strncpy(rail->name, tmp, 7);
+        return;
+    }
+    fscanf(fp, "%s", tmp);
+    int size = strlen(tmp);
+    rail->name = (char*) calloc(size, sizeof(char));
+    strcpy(rail->name, tmp);
+    fclose(fp);
+}
+
+int rail_set_value(file_t* *file, char* *value, char* path)
+{
+    /* Open the bash ELF executable file on Linux */
+    *file = (file_t*) malloc(sizeof(file_t*));
+    (*file)->fd = open(path, O_RDONLY);
+    if ((*file)->fd == -1)
+        return -1;
+
+    /* Get information about the file, including size */
+    struct stat file_info;
+    if(fstat((*file)->fd, &(*file)->file_info) == -1)
+        return -1;
+
+    /* Create a private, read-only memory mapping */
+    *value = (char*) mmap(NULL, (*file)->file_info.st_size, PROT_READ, MAP_PRIVATE, (*file)->fd, 0);
+    if(*value == MAP_FAILED)
+        return -1;
+    return 0;
+}
+
+int rail_init(rail_t* rail, int id) 
+{
+    if( id < 0 || id > 2)
+        printf(ERROR "Invalid rail id %d. Should be 0, 1 or 2.\n", id);
+    rail->id = id; //  set the id
+
+    // get the name
+    char buff[BUFF_SIZE] = "";
+    sprintf(buff, RAIL_NAME_PATH_F, id);
+    rail_set_name(rail, buff);
+
+    // open Memory mapped files
+    sprintf(buff, RAIL_CURRENT_PATH_F, id);
+    if(rail_set_value(&rail->c_file, &rail->c_value, buff) != 0)
+        return -1;
+    
+    sprintf(buff, RAIL_VOLTAGE_PATH_F, id);
+    if(rail_set_value(&rail->v_file, &rail->v_value, buff) != 0)
+        return -1;
+    
+    sprintf(buff, RAIL_POWER_PATH_F,   id);
+    if(rail_set_value(&rail->p_file, &rail->p_value, buff) != 0)
+        return -1;
+
+    return 0;
+}
 
 /**
  * @brief Gets the system current time in seceonds and nano seconds.
@@ -159,7 +226,7 @@ void drop_eol(char* string)
         *c = 0;
 }
 
-int read_rail_data(rail* p_rail)
+/*int read_rail_data(rail* p_rail)
 {
     rewind(p_rail->curr_fp);
     rewind(p_rail->volt_fp);
@@ -177,20 +244,93 @@ int read_rail_data(rail* p_rail)
         return -1;
     }
     return 0;
+}*/
+
+void rail_log(rail_t* rail)
+{
+    puts("OK3-");
+    log(COLOR_WHITE "[%-11s] " COLOR_NONE "Current: %4s mA -- Voltage: %4s mV -- Power: %4s mW\n", 
+    rail->name, rail->c_value, rail->v_value, rail->p_value);
 }
 
-void log_rail(rail* p_rail)
+void rail_unmap_close(char* mmap_addr, file_t* file)
 {
-    log(COLOR_WHITE "[%-11s] " COLOR_NONE "Current: %4d mA -- Voltage: %4d mV -- Power: %4d mW\n", 
-    p_rail->name, p_rail->current, p_rail->voltage, p_rail->power);
+    if(!file)
+        return;
+    munmap(mmap_addr, file->file_info.st_size);
+    close(file->fd);
+    free(file);  // we used calloc for this one
 }
 
-void free_rail(rail* p_rail)
+void rail_free(rail_t* rail)
 {
-    // close files
-    fclose(p_rail->curr_fp);
-    fclose(p_rail->volt_fp);
-    fclose(p_rail->pow_fp);
+    // free memory
+    free(rail->name);
+    // unmap and close files
+    rail_unmap_close(rail->c_value, rail->c_file);
+    rail_unmap_close(rail->v_value, rail->v_file);
+    rail_unmap_close(rail->p_value, rail->p_file);
+}
+
+void test_mman(void)
+{
+    /* Code Listing 3.6:
+    Read the first bytes of the bash executable to confirm it is ELF format
+    */
+
+    /* Open the bash ELF executable file on Linux */
+    int fd = open("/bin/bash", O_RDONLY);
+    assert (fd != -1);
+
+    /* Get information about the file, including size */
+    struct stat file_info;
+    assert (fstat (fd, &file_info) != -1);
+
+    /* Create a private, read-only memory mapping */
+    char *mmap_addr = (char*) mmap(NULL, file_info.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    assert (mmap_addr != MAP_FAILED);
+
+    /* ELF specification:
+    Bytes 1 - 3 of the file must be 'E', 'L', 'F' */
+    assert (mmap_addr[1] == 'E');
+    assert (mmap_addr[2] == 'L');
+    assert (mmap_addr[3] == 'F');
+
+    /* Unmap the file and close it */
+    munmap (mmap_addr, file_info.st_size);
+    close (fd);
+}
+
+void test_file(void)
+{
+    char path[] = "/sys/bus/i2c/drivers/ina3221x/6-0040/iio:device0/in_voltage0_input";
+    /* Open the bash ELF executable file on Linux */
+    int fd = open(path, O_RDONLY);
+    assert (fd != -1);
+
+    /* Get information about the file, including size */
+    struct stat file_info;
+    assert (fstat (fd, &file_info) != -1);
+
+    /* Create a private, read-only memory mapping */
+    char *mmap_addr = (char*) mmap(NULL, file_info.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    printf("Mapped value %s\n", mmap_addr);
+    assert (mmap_addr != MAP_FAILED);
+
+    printf("Mapped value %s\n", mmap_addr);
+
+    /* Unmap the file and close it */
+    munmap (mmap_addr, file_info.st_size);
+    close (fd);
+}
+
+void test_rail(void)
+{
+    rail_t rail = rail_new();
+    rail_init(&rail, 0);
+    rail_log(&rail);
+
+    rail_free(&rail);
 }
 
 #ifdef __cplusplus

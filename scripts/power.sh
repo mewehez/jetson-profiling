@@ -89,12 +89,14 @@ header="${header}; in_current_${RAIL_NAME_1} (mA); in_voltage_${RAIL_NAME_1} (mV
 header="${header}; in_current_${RAIL_NAME_2} (mA); in_voltage_${RAIL_NAME_2} (mV); in_power_${RAIL_NAME_2} (mW)"
 header="${header,,}; duration" 
 
+
 # write header to output file
-echo $header > $OUTPUT_FILE  # > overides the file. Use >> to append at the end of the file
+(
+echo "$header"  # > overides the file. Use >> to append at the end of the file
 
 # start infinite loop
 while : ; do
-	s_time=$(date +%s.%N)  # start time
+	s_time=$(date +%s.%3N)  # start time
 
 	# prepare the line
 	line="${s_time}"
@@ -125,13 +127,12 @@ while : ; do
 	line="${line}; ${in_current_2}; ${in_voltage_2}; ${in_power_2}"
 
 	# compute duration
-	e_time=$(date +%s.%N)  # end time
+	e_time=$(date +%s.%3N)  # end time
 	duration=$(echo "$e_time - $s_time" | bc -l)
 
 	# add duration to line
 	line="${line}; ${duration}"
+	echo "$line"
 
-	# write line to file
-	echo $line >> $OUTPUT_FILE
 done
-
+) > $OUTPUT_FILE # write to file
