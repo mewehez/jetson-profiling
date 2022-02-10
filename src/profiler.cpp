@@ -55,7 +55,7 @@ void Profiler::setFile(FILE* file)
 
 void Profiler::writeInferenceTime(double startTimestamp, double duration)
 {
-    fprintf(getFile(), "model; %f; %f\n", duration, startTimestamp);
+    fprintf(getFile(), "model_total; %f; %f\n", duration, startTimestamp);
 }
 
 void Profiler::writeLayerTime(const char* layerName, float duration)

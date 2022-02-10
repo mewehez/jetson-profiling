@@ -46,7 +46,7 @@ static int parse_string(arg_option* option, char* value);
  * @param value the value to parse into option.
  * @return A status code. 0 if everything is good, else -1.
  */
-static int parse_boolean(arg_option* option, bool value);
+static int parse_boolean(arg_option* option, bool_t value);
 
 /**
  * Checks that all the options in command line have correct types.
@@ -163,7 +163,7 @@ static int parse_value(arg_option* option, char* arg_value)
   
   if(option->type == ARG_OPT_BOOLEAN)
   {
-    return parse_boolean(option, true);
+    return parse_boolean(option, TRUE);
   }
   else if(!arg_value)
     return 0;
@@ -223,7 +223,7 @@ int parse_command_line(const command_line* cmd, int argc, char** argv)
   int status = 0; // status returned by helper functions
   // previous parsed argument has value and or name?
   // used to track optional args
-  bool prev_has_name  = false;
+  bool_t prev_has_name  = FALSE;
 
   char* arg_name  = NULL; // argument name after split
   char* arg_value = NULL; // argument value after split
@@ -250,7 +250,7 @@ int parse_command_line(const command_line* cmd, int argc, char** argv)
     parse_value(option, arg_value);
 
     // check if we started optional args
-    prev_has_name  = (arg_name)  ? true : false;
+    prev_has_name  = (arg_name)  ? TRUE : FALSE;
 
     // free manually allocated memory
     free(arg_name);
@@ -268,10 +268,10 @@ static int parse_integer(arg_option* option, int value)
   return 0;
 }
 
-static int parse_boolean(arg_option* option, bool value)
+static int parse_boolean(arg_option* option, bool_t value)
 {
-  option->value = (bool*) calloc(1, sizeof(bool));
-  *(bool*)option->value = value;
+  option->value = (bool_t*) calloc(1, sizeof(bool_t));
+  *(bool_t*)option->value = value;
   return 0;
 }
 

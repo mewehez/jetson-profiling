@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
     while(i < maxInfer)
     {
-        printf("\t--Iteration %d of %d\n", i, maxInfer);
+        printf("\t--Iteration %d of %d\n", i+1, maxInfer);
         // classify the image, return the object class index (or -1 on error)
         classIndex = net->classify(imgPtr, imgWidth, imgHeight, &confidence);
 
@@ -116,6 +116,7 @@ int main(int argc, char** argv)
             // value is < 0, so an error occured
             LogError("failed to classify image\n");
         }
+        // net->printProfilerTimes();
     }
 
     // print profiler times

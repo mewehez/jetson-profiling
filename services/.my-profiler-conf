@@ -1,0 +1,3 @@
+OUTPUT=-o=/home/kahanam/experiments/profiling/profiler_output.csv 
+VALUE=-v=power 
+RAIL=-r=gpu

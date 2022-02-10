@@ -28,6 +28,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_OUTPUT_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_OUTPUT_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_OUTPUT_DIR}/lib)
 
+# config headers
+option(LOG_VALUES "Enable logging")  # is OFF by default
+configure_file("${PROJECT_SOURCE_DIR}/headers/config.h.in" "${PROJECT_INCLUDE_DIR}/profiling/config.h")
+
 # build c/c++ libs
 include_directories(${PROJECT_INCLUDE_DIR})
 

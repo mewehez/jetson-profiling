@@ -1,0 +1,6 @@
+#ifndef __CONFIG_GUARD_H__
+#define __CONFIG_GUARD_H__
+
+#cmakedefine LOG_VALUES
+
+#endif

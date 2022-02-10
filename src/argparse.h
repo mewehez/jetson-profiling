@@ -20,15 +20,15 @@ extern "C"
 /**
  * Type bool to use boolean style in c.
  */
-#define bool unsigned int
+#define bool_t unsigned int
 /**
  * Boolean true value.
  */
-#define true  1
+#define TRUE  1
 /**
  * Boolean false value.
  */
-#define false 0
+#define FALSE 0
 /**
  * First position of the command line arguments to read.
  */
@@ -52,11 +52,10 @@ typedef enum
  */
 typedef struct
 {
-  arg_type type;      /**< The data type of the argument */
-  char short_name;    /**< The short name of the argument. Exemple `h` */
-  char* name;         /**< The long name of the argument. Exemple `help` */
-  void* value;        /**< Pointer to the value of the argument */
-  void* default_val;  /**< Default value if not supplied by the user */
+  arg_type type;   /**< The data type of the argument */
+  char short_name; /**< The short name of the argument. Exemple `h` */
+  char* name;      /**< The long name of the argument. Exemple `help` */
+  void* value;     /**< Pointer to the value of the argument */
 } arg_option;
 
 /**

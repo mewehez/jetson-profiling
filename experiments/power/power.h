@@ -51,7 +51,7 @@ extern "C"
 #define rail_new() {-1, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 
 
-static bool log_values;
+static bool_t log_values;
 
 typedef struct timespec timespec;
 

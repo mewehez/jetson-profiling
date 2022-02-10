@@ -36,10 +36,16 @@ namespace profiling
             // write inference start and duration
             void inferenceStat()
             {
-                profilerQuery query = PROFILER_POSTPROCESS;
-                timespec start = mEventsCPU[query*2];
-                float duration = mProfilerTimes[query].x;
-                file_profiler_t::writeInferenceTime(timeDouble(start), duration);
+                profilerQuery query = PROFILER_NETWORK;
+                if( PROFILER_QUERY(query) )
+                {
+                    timespec start = mEventsCPU[query*2];
+                    float duration = mProfilerTimes[query].y;
+                    file_profiler_t::writeInferenceTime(timeDouble(start), duration);
+                }
+                else{
+                    LogInfo("Couldn't read query");
+                }
             }
 
             // Retrieve the description of a particular class.
